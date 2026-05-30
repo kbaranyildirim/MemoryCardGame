@@ -1,6 +1,5 @@
 # IDE ayarları ve geçici build dosyaları (Bunlar gereksiz, yükleme)
 .idea/
-build/
 cmake-build-debug/
 *.o
 *.obj
