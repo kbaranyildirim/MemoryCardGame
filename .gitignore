@@ -1,0 +1,11 @@
+# IDE ayarları ve geçici build dosyaları (Bunlar gereksiz, yükleme)
+.idea/
+build/
+cmake-build-debug/
+*.o
+*.obj
+*.exe
+*.dll.a
+
+# KÜTÜPHANELER (lib klasörü kalsın ki başkaları indirince çalışsın)
+# lib/ satırını buraya EKLEMİYORUZ, böylece lib/ GitHub'a gidecek.
