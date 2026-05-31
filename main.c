@@ -23,7 +23,6 @@ Card board[GRID_SIZE][GRID_SIZE];
 void init_board() {
     int pairs[GRID_SIZE * GRID_SIZE];
     for (int i = 0; i < (GRID_SIZE * GRID_SIZE); i++) pairs[i] = i / 2;
-
     srand(time(NULL));
     for (int i = (GRID_SIZE * GRID_SIZE) - 1; i > 0; i--) {
         int j = rand() % (i + 1);
@@ -31,7 +30,6 @@ void init_board() {
         pairs[i] = pairs[j];
         pairs[j] = temp;
     }
-
     int index = 0;
     for (int i = 0; i < GRID_SIZE; i++) {
         for (int j = 0; j < GRID_SIZE; j++) {
@@ -42,6 +40,18 @@ void init_board() {
     }
 }
 
+void draw_board() {
+    al_clear_to_color(al_map_rgb(40, 44, 52));
+    for (int i = 0; i < GRID_SIZE; i++) {
+        for (int j = 0; j < GRID_SIZE; j++) {
+            float x = j * (CARD_SIZE + GAP) + GAP;
+            float y = i * (CARD_SIZE + GAP) + GAP + TOP_MARGIN;
+            al_draw_filled_rectangle(x, y, x + CARD_SIZE, y + CARD_SIZE, al_map_rgb(100, 105, 115));
+        }
+    }
+    al_flip_display();
+}
+
 int main() {
     if (!al_init()) return -1;
     al_init_primitives_addon();
@@ -50,15 +60,16 @@ int main() {
     ALLEGRO_EVENT_QUEUE *queue = al_create_event_queue();
     al_register_event_source(queue, al_get_display_event_source(display));
 
-    init_board(); // Arka plan kart kurulumu
-
+    init_board();
     bool running = true;
     while (running) {
         ALLEGRO_EVENT event;
         al_wait_for_event(queue, &event);
         if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE) running = false;
-        al_clear_to_color(al_map_rgb(40, 44, 52));
-        al_flip_display();
+
+        if (al_is_event_queue_empty(queue)) {
+            draw_board();
+        }
     }
     al_destroy_display(display);
     al_destroy_event_queue(queue);
