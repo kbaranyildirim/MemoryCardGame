@@ -1,5 +1,7 @@
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_primitives.h>
+#include <allegro5/allegro_font.h>
+#include <allegro5/allegro_ttf.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -19,6 +21,7 @@ typedef struct {
 } Card;
 
 Card board[GRID_SIZE][GRID_SIZE];
+ALLEGRO_FONT *font;
 
 void init_board() {
     int pairs[GRID_SIZE * GRID_SIZE];
@@ -46,7 +49,14 @@ void draw_board() {
         for (int j = 0; j < GRID_SIZE; j++) {
             float x = j * (CARD_SIZE + GAP) + GAP;
             float y = i * (CARD_SIZE + GAP) + GAP + TOP_MARGIN;
-            al_draw_filled_rectangle(x, y, x + CARD_SIZE, y + CARD_SIZE, al_map_rgb(100, 105, 115));
+
+            if (board[i][j].isMatched || board[i][j].isFaceUp) {
+                al_draw_filled_rectangle(x, y, x + CARD_SIZE, y + CARD_SIZE, al_map_rgb(250, 250, 250));
+                al_draw_textf(font, al_map_rgb(0, 0, 0), x + CARD_SIZE / 2, y + CARD_SIZE / 2 - 5,
+                              ALLEGRO_ALIGN_CENTER, "%d", board[i][j].id);
+            } else {
+                al_draw_filled_rectangle(x, y, x + CARD_SIZE, y + CARD_SIZE, al_map_rgb(100, 105, 115));
+            }
         }
     }
     al_flip_display();
@@ -55,22 +65,42 @@ void draw_board() {
 int main() {
     if (!al_init()) return -1;
     al_init_primitives_addon();
+    al_init_font_addon();
+    al_init_ttf_addon();
+    al_install_mouse();
 
+    font = al_create_builtin_font();
     ALLEGRO_DISPLAY *display = al_create_display(SCREEN_WIDTH, SCREEN_HEIGHT);
     ALLEGRO_EVENT_QUEUE *queue = al_create_event_queue();
     al_register_event_source(queue, al_get_display_event_source(display));
+    al_register_event_source(queue, al_get_mouse_event_source());
 
     init_board();
     bool running = true;
+    int flipped_cards = 0;
+
     while (running) {
         ALLEGRO_EVENT event;
         al_wait_for_event(queue, &event);
-        if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE) running = false;
+
+        if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
+            running = false;
+        } else if (event.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN) {
+            int mx = event.mouse.x;
+            int my = event.mouse.y;
+            int col = mx / (CARD_SIZE + GAP);
+            int row = (my - TOP_MARGIN) / (CARD_SIZE + GAP);
+
+            if (row >= 0 && row < GRID_SIZE && col >= 0 && col < GRID_SIZE && !board[row][col].isFaceUp) {
+                board[row][col].isFaceUp = true;
+            }
+        }
 
         if (al_is_event_queue_empty(queue)) {
             draw_board();
         }
     }
+    al_destroy_font(font);
     al_destroy_display(display);
     al_destroy_event_queue(queue);
     return 0;
