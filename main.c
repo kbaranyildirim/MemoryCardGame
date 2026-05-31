@@ -77,6 +77,7 @@ int main() {
 
     init_board();
     bool running = true;
+    int first_row = -1, first_col = -1;
     int flipped_cards = 0;
 
     while (running) {
@@ -91,11 +92,31 @@ int main() {
             int col = mx / (CARD_SIZE + GAP);
             int row = (my - TOP_MARGIN) / (CARD_SIZE + GAP);
 
-            if (row >= 0 && row < GRID_SIZE && col >= 0 && col < GRID_SIZE && !board[row][col].isFaceUp) {
-                board[row][col].isFaceUp = true;
+            if (row >= 0 && row < GRID_SIZE && col >= 0 && col < GRID_SIZE && !board[row][col].isMatched && !board[row][col].isFaceUp) {
+                if (flipped_cards == 0) {
+                    board[row][col].isFaceUp = true;
+                    first_row = row;
+                    first_col = col;
+                    flipped_cards = 1;
+                } else if (flipped_cards == 1) {
+                    board[row][col].isFaceUp = true;
+                    draw_board();
+
+                    if (board[first_row][first_col].id == board[row][col].id) {
+                        board[first_row][first_col].isMatched = true;
+                        board[row][col].isMatched = true;
+                    } else {
+                        al_rest(0.6);
+                        board[first_row][first_col].isFaceUp = false;
+                        board[row][col].isFaceUp = false;
+                        al_flush_event_queue(queue);
+                    }
+                    flipped_cards = 0;
+                    first_row = -1;
+                    first_col = -1;
+                }
             }
         }
-
         if (al_is_event_queue_empty(queue)) {
             draw_board();
         }
